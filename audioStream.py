@@ -7,19 +7,19 @@ class StreamManager():
   CHUNK = 1024
   audio = pyaudio.PyAudio()
  
-  def startStream(self, isInput: bool):
-    return (self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
-      rate=self.RATE, input=True,
-      frames_per_buffer=self.CHUNK) if isInput else self.audio.open(format=self.FORMAT, channels=self.CHANNELS,
-      rate=self.RATE, output=True,
-      frames_per_buffer=self.CHUNK))
+  @staticmethod
+  def startStream(isInput: bool):
+    return (StreamManager.audio.open(format=StreamManager.FORMAT, channels=StreamManager.CHANNELS,
+      rate=StreamManager.RATE, input=True,
+      frames_per_buffer=StreamManager.CHUNK) if isInput else StreamManager.audio.open(format=StreamManager.FORMAT, channels=StreamManager.CHANNELS,
+      rate=StreamManager.RATE, output=True,
+      frames_per_buffer=StreamManager.CHUNK))
   
 # start Recording
 
 if __name__ == '__main__':
-  streamManager = StreamManager()
-  inStream = streamManager.startStream(True)
-  outStream = streamManager.startStream(False)
+  inStream = StreamManager.startStream(True)
+  outStream = StreamManager.startStream(False)
   while True:
-    data = inStream.read(streamManager.CHUNK)
+    data = inStream.read(StreamManager.CHUNK)
     outStream.write(data)  
