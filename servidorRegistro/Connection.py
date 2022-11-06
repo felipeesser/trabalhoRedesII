@@ -1,6 +1,6 @@
 import psycopg2
 import json
-from endereco import Endereco
+from address import Address
 
 class Connection():
   def __init__(self,credpath):
@@ -32,7 +32,7 @@ class Connection():
     self.conn.close()
     self.conn=None
 
-  def insert_db(self,endereco:Endereco):
+  def insert_db(self,endereco:Address):
     sql = '''
     INSERT into public.enderecos (nome,endIP,porta) 
     values('%s','%s','%s');
@@ -60,7 +60,7 @@ class Connection():
     cur = self.conn.cursor()
     cur.execute(sql)
     result = cur.fetchall()
-    e=Endereco(None,None,None)
+    e=Address(None,None,None)
     if result:
       e.nome=result[0][0]
       e.endIP=result[0][1]
@@ -112,12 +112,12 @@ def main():
    c.conn_db()
    c.create_db()
   #insert
-   e=Endereco('teste','11111111.11111111.11111111.11111111','5000')
+   e=Address('teste','11111111.11111111.11111111.11111111','5000')
    c.insert_db(e)
    e=c.read_by_name('teste')
    e.tostring()
   #update 
-   e=Endereco('update','0000000.11111111.11111111.11111111','4000')
+   e=Address('update','0000000.11111111.11111111.11111111','4000')
    c.update_by_name('teste',e)
    e=c.read_by_name('update')
    e.tostring()
@@ -125,6 +125,6 @@ def main():
    c.delete_by_name('teste')
    e=c.read_by_name('teste')
    e.tostring()
-   
+
 if __name__ == '__main__':
     main()

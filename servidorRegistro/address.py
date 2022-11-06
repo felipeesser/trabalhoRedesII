@@ -1,4 +1,4 @@
-class Endereco():
+class Address():
     def __init__(self,nome,endIP,porta):
         self.nome=nome
         self.endIP=endIP
