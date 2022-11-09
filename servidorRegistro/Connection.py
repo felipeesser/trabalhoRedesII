@@ -10,10 +10,15 @@ class Connection():
   def conn_db(self):
     with open(self.credpath) as f:
       credentials=json.load(f)
-    self.conn = psycopg2.connect(host=credentials['host'], 
-                          database=credentials['database'],
-                          user=credentials['user'], 
-                          password=credentials['password'])
+    try:
+      self.conn = psycopg2.connect(host=credentials['host'], 
+                            database=credentials['database'],
+                            user=credentials['user'], 
+                            password=credentials['password'])                     
+    except (Exception, psycopg2.DatabaseError) as error:
+        print("Error: %s" % error)
+        return False
+    return True
     
   def create_db(self):
     sql = '''
@@ -24,13 +29,24 @@ class Connection():
         endIP char(35), 
         porta varchar(10) 
       );'''
-    self.conn_db()
-    cur = self.conn.cursor()
-    cur.execute(sql)
-    self.conn.commit()
-    cur.close()
-    self.conn.close()
-    self.conn=None
+
+    succes=self.conn_db()
+    if succes:
+      cur = self.conn.cursor()
+      try:
+        cur.execute(sql)
+        self.conn.commit()
+      except (Exception, psycopg2.DatabaseError) as error:
+          print("Error: %s" % error)
+          self.conn.rollback()
+          cur.close()
+          self.conn.close()
+          return False
+      cur.close()
+      self.conn.close()
+      self.conn=None
+      return True
+    return succes
 
   def insert_db(self,endereco:Address):
     sql = '''
@@ -38,93 +54,96 @@ class Connection():
     values('%s','%s','%s');
     '''%(endereco.nome,endereco.endIP,endereco.porta)
     self.conn_db()
-    cur=self.conn.cursor()
-    try:
-        cur.execute(sql)
-        self.conn.commit()
-    except (Exception, psycopg2.DatabaseError) as error:
-        print("Error: %s" % error)
-        self.conn.rollback()
-        cur.close()
-        self.conn.close()
-        return
-    cur.close()
-    self.conn.close()
-    self.conn=None
+    if self.conn:
+      cur=self.conn.cursor()
+      try:
+          cur.execute(sql)
+          self.conn.commit()
+      except (Exception, psycopg2.DatabaseError) as error:
+          print("Error: %s" % error)
+          self.conn.rollback()
+          cur.close()
+          self.conn.close()
+          return
+      cur.close()
+      self.conn.close()
+      self.conn=None
 
   def read_by_name(self,name):
+    addr=Address(None,None,None)
     sql = '''
     select * from public.enderecos where nome='%s'
     '''%(name)
     self.conn_db()
-    cur = self.conn.cursor()
-    cur.execute(sql)
-    result = cur.fetchall()
-    e=Address(None,None,None)
-    if result:
-      e.nome=result[0][0]
-      e.endIP=result[0][1]
-      e.porta=result[0][2]
-    cur.close()
-    self.conn.close()
-    self.conn=None
-    return e
+    if self.conn:
+      cur = self.conn.cursor()
+      cur.execute(sql)
+      result = cur.fetchall()
+      if result:
+        addr.nome=str(result[0][0])
+        addr.endIP=str(result[0][1])
+        addr.porta=str(result[0][2])
+      cur.close()
+      self.conn.close()
+      self.conn=None
+    return addr
+
+  def read_all(self):
+    adresses=[]
+    sql = '''
+    select * from public.enderecos
+    '''
+    self.conn_db()
+    if self.conn:
+      cur = self.conn.cursor()
+      cur.execute(sql)
+      result = cur.fetchall()
+      if result:
+        for r in result:
+          addr=Address(None,None,None)
+          addr.nome=r[0]
+          addr.endIP=r[1]
+          addr.porta=r[2]
+          adresses.append(addr)
+      cur.close()
+      self.conn.close()
+      self.conn=None
+    return adresses
 
   def delete_by_name(self,name):
     sql = '''
     delete from public.enderecos where nome='%s'
     '''%(name)
     self.conn_db()
-    cur = self.conn.cursor()
-    try:
-        cur.execute(sql)
-        self.conn.commit()
-    except (Exception, psycopg2.DatabaseError) as error:
-        print("Error: %s" % error)
-        self.conn.rollback()
-        cur.close()
-        self.conn.close()
-        return
-    self.conn.close()
-    self.conn=None
+    if self.conn:
+      cur = self.conn.cursor()
+      try:
+          cur.execute(sql)
+          self.conn.commit()
+      except (Exception, psycopg2.DatabaseError) as error:
+          print("Error: %s" % error)
+          self.conn.rollback()
+          cur.close()
+          self.conn.close()
+          return
+      self.conn.close()
+      self.conn=None
 
-  def update_by_name(self,name,e):
+  def update_by_name(self,name,addr:Address):
     sql = '''
     update public.enderecos set nome='%s',endIP='%s',porta='%s' where nome='%s'
-    '''%(e.nome,e.endIP,e.porta,name)
+    '''%(addr.nome,addr.endIP,addr.porta,name)
     self.conn_db()
-    cur = self.conn.cursor()
-    try:
-        cur.execute(sql)
-        self.conn.commit()
-    except (Exception, psycopg2.DatabaseError) as error:
-        print("Error: %s" % error)
-        self.conn.rollback()
-        cur.close()
-        self.conn.close()
-        return
-    self.conn.close()
-    self.conn=None
-
-def main():
-  #create
-   c=Connection('credentials.json')
-   c.conn_db()
-   c.create_db()
-  #insert
-   e=Address('teste','11111111.11111111.11111111.11111111','5000')
-   c.insert_db(e)
-   e=c.read_by_name('teste')
-   e.tostring()
-  #update 
-   e=Address('update','0000000.11111111.11111111.11111111','4000')
-   c.update_by_name('teste',e)
-   e=c.read_by_name('update')
-   e.tostring()
-  #delete
-   c.delete_by_name('teste')
-   e=c.read_by_name('teste')
-   e.tostring()
-
-if __name__ == '__main__':
-    main()
+    if self.conn:
+      cur = self.conn.cursor()
+      try:
+          cur.execute(sql)
+          self.conn.commit()
+      except (Exception, psycopg2.DatabaseError) as error:
+          print("Error: %s" % error)
+          self.conn.rollback()
+          cur.close()
+          self.conn.close()
+          return
+      self.conn.close()
+      self.conn=None
