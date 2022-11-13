@@ -4,8 +4,8 @@ from address import Address
 
 class Connection():
   def __init__(self,credpath):
-        self.conn=None
-        self.credpath=credpath
+    self.conn=None
+    self.credpath=credpath
 
   def conn_db(self):
     with open(self.credpath) as f:
@@ -25,9 +25,9 @@ class Connection():
     sql = '''
     CREATE TABLE IF NOT EXISTS public.enderecos 
       ( 
-        nome  varchar(50), 
+        nome  varchar(50) PRIMARY KEY, 
         endIP char(35), 
-        porta varchar(10) 
+        porta varchar(10)
       );'''
 
     success=self.conn_db()
@@ -72,7 +72,7 @@ class Connection():
 
   def insert(self,endereco:Address):
     sql = '''
-    INSERT into public.enderecos (nome,endIP,porta) 
+    INSERT into enderecos (nome, endIP, porta) 
     values('%s','%s','%s');
     '''%(endereco.nome,endereco.endIP,endereco.porta)
     self.conn_db()
@@ -81,12 +81,14 @@ class Connection():
       try:
         cur.execute(sql)
         self.conn.commit()
+        # result = cur.fetchall()
+        # if result: print('insert result: {}'.format(result))
       except (Exception, psycopg2.DatabaseError) as error:
         print("Error: %s" % error)
         self.conn.rollback()
         cur.close()
         self.conn.close()
-        return
+        raise error
       cur.close()
       self.conn.close()
       self.conn=None
