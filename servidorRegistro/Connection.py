@@ -11,44 +11,66 @@ class Connection():
     with open(self.credpath) as f:
       credentials=json.load(f)
     try:
-      self.conn = psycopg2.connect(host=credentials['host'], 
-                            database=credentials['database'],
-                            user=credentials['user'], 
-                            password=credentials['password'])                     
+      self.conn = psycopg2.connect(
+        host=credentials['host'], 
+        database=credentials['database'],
+        user=credentials['user'], 
+        password=credentials['password'])                     
     except (Exception, psycopg2.DatabaseError) as error:
-        print("Error: %s" % error)
-        return False
+      print("Error: %s" % error)
+      return False
     return True
     
-  def create_db(self):
+  def create_table(self):
     sql = '''
-    DROP TABLE IF EXISTS public.enderecos;
-    CREATE TABLE public.enderecos 
+    CREATE TABLE IF NOT EXISTS public.enderecos 
       ( 
         nome  varchar(50), 
         endIP char(35), 
         porta varchar(10) 
       );'''
 
-    succes=self.conn_db()
-    if succes:
+    success=self.conn_db()
+    if success:
       cur = self.conn.cursor()
       try:
         cur.execute(sql)
         self.conn.commit()
       except (Exception, psycopg2.DatabaseError) as error:
-          print("Error: %s" % error)
-          self.conn.rollback()
-          cur.close()
-          self.conn.close()
-          return False
+        print("Error: %s" % error)
+        self.conn.rollback()
+        cur.close()
+        self.conn.close()
+        return False
       cur.close()
       self.conn.close()
       self.conn=None
       return True
-    return succes
+    return success
 
-  def insert_db(self,endereco:Address):
+  def drop_table(self):
+    sql = '''
+    DROP TABLE IF EXISTS public.enderecos;
+    '''
+    success=self.conn_db()
+    if success:
+      cur = self.conn.cursor()
+      try:
+        cur.execute(sql)
+        self.conn.commit()
+      except (Exception, psycopg2.DatabaseError) as error:
+        print("Error: %s" % error)
+        self.conn.rollback()
+        cur.close()
+        self.conn.close()
+        return False
+      cur.close()
+      self.conn.close()
+      self.conn=None
+      return True
+    return success
+
+  def insert(self,endereco:Address):
     sql = '''
     INSERT into public.enderecos (nome,endIP,porta) 
     values('%s','%s','%s');
@@ -57,14 +79,14 @@ class Connection():
     if self.conn:
       cur=self.conn.cursor()
       try:
-          cur.execute(sql)
-          self.conn.commit()
+        cur.execute(sql)
+        self.conn.commit()
       except (Exception, psycopg2.DatabaseError) as error:
-          print("Error: %s" % error)
-          self.conn.rollback()
-          cur.close()
-          self.conn.close()
-          return
+        print("Error: %s" % error)
+        self.conn.rollback()
+        cur.close()
+        self.conn.close()
+        return
       cur.close()
       self.conn.close()
       self.conn=None
@@ -118,14 +140,14 @@ class Connection():
     if self.conn:
       cur = self.conn.cursor()
       try:
-          cur.execute(sql)
-          self.conn.commit()
+        cur.execute(sql)
+        self.conn.commit()
       except (Exception, psycopg2.DatabaseError) as error:
-          print("Error: %s" % error)
-          self.conn.rollback()
-          cur.close()
-          self.conn.close()
-          return
+        print("Error: %s" % error)
+        self.conn.rollback()
+        cur.close()
+        self.conn.close()
+        return
       self.conn.close()
       self.conn=None
 
@@ -137,13 +159,13 @@ class Connection():
     if self.conn:
       cur = self.conn.cursor()
       try:
-          cur.execute(sql)
-          self.conn.commit()
+        cur.execute(sql)
+        self.conn.commit()
       except (Exception, psycopg2.DatabaseError) as error:
-          print("Error: %s" % error)
-          self.conn.rollback()
-          cur.close()
-          self.conn.close()
-          return
+        print("Error: %s" % error)
+        self.conn.rollback()
+        cur.close()
+        self.conn.close()
+        return
       self.conn.close()
       self.conn=None

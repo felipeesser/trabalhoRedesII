@@ -11,34 +11,34 @@ class TestCrud(unittest.TestCase):
     
     @classmethod
     def tearDownClass(cls):
-        cls.c.create_db()
+        cls.c.drop_table()
 
     def test_create(self):
-        result=self.c.create_db()
+        result=self.c.create_table()
         self.assertEqual(result,True)
 
     def test_insert_read(self):
-        self.c.create_db()
+        self.c.create_table()
         
-        self.c.insert_db(self.a1)
+        self.c.insert(self.a1)
         self.a1=self.c.read_by_name('teste1')
         self.assertEqual(self.a1.nome,'teste1')
         self.assertEqual(self.a1.endIP,'11111111.11111111.11111111.11111111')
         self.assertEqual(self.a1.porta,'5000')
     
     def test_read_all(self):
-        self.c.create_db()
+        self.c.create_table()
         
-        self.c.insert_db(self.a1)
-        self.c.insert_db(self.a2)
+        self.c.insert(self.a1)
+        self.c.insert(self.a2)
         result=self.c.read_all()
 
         self.assertEqual(len(result),2)
 
     def test_update(self):
-        self.c.create_db()
+        self.c.create_table()
         
-        self.c.insert_db(self.a1)
+        self.c.insert(self.a1)
         self.a1=self.c.read_by_name('teste1')
         self.assertEqual(self.a1.nome,'teste1')
         self.assertEqual(self.a1.endIP,'11111111.11111111.11111111.11111111')
@@ -51,9 +51,9 @@ class TestCrud(unittest.TestCase):
         self.assertEqual(a3.porta,'4500')
 
     def test_delete(self):
-        self.c.create_db()
+        self.c.create_table()
         
-        self.c.insert_db(self.a1)
+        self.c.insert(self.a1)
         self.a1=self.c.read_by_name('teste1')
         self.assertEqual(self.a1.nome,'teste1')
         self.assertEqual(self.a1.endIP,'11111111.11111111.11111111.11111111')
