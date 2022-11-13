@@ -24,6 +24,7 @@ class RegisterServer(BaseRequestHandler):
         name, address, port = arguments[0], arguments[1], arguments[2]
         self.dbConnection.insert(Address(name, address, port))
         self.request.sendall('inserido, {}'.format(name).encode('utf-8'))  
+      
       elif command == 'consulta':
         arguments = processedMessage[1:]
         if len(arguments) != 1: raise Exception('Insufficient number of arguments')
@@ -31,8 +32,17 @@ class RegisterServer(BaseRequestHandler):
         endereco = self.dbConnection.read_by_name(name)
         if endereco.endIP != None: self.request.sendall('resposta, {}, {}'.format(endereco.endIP.strip(), endereco.porta.strip()).encode('utf-8'))
         else: self.request.sendall('resposta, nao_cadastrado'.encode('utf-8'))
-
+      
+      elif command == 'remocao':
+        arguments = processedMessage[1:]
+        if len(arguments) != 1: raise Exception('Insufficient number of arguments')
+        name = arguments[0]
+        endereco = self.dbConnection.delete_by_name(name)
+        self.request.sendall('removido, {}'.format(name).encode('utf-8'))
+        # else: self.request.sendall('resposta, nao_cadastrado'.encode('utf-8'))
+      
       else: self.request.sendall('comando_desconhecido'.encode('utf-8'))
+    
     except (Exception) as error:
       print('Error processing command: {}'.format(error))
       if isinstance(error, DatabaseError):

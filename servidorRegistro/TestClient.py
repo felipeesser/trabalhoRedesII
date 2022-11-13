@@ -11,4 +11,5 @@ class TestClient:
 if __name__ == '__main__':
   testClient = TestClient()
   # testClient.sendMessage(('127.0.0.1', 9999), 'registro, maria, 127.0.0.1, 9001'.encode('utf-8'))
-  testClient.sendMessage(('127.0.0.1', 9999), 'consulta, maria'.encode('utf-8'))
+  # testClient.sendMessage(('127.0.0.1', 9999), 'consulta, maria'.encode('utf-8'))
+  testClient.sendMessage(('127.0.0.1', 9999), 'remocao, maria'.encode('utf-8'))
