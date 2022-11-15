@@ -25,12 +25,17 @@ class RegisterServer(BaseRequestHandler):
         self.dbConnection.insert(Address(name, address, port))
         self.request.sendall('inserido, {}'.format(name).encode('utf-8'))  
       
+      elif command == 'listar_contatos':
+        result = list(map(lambda x: x.toJson(), self.dbConnection.read_all()))
+        self.request.sendall('resposta, {}'.format(result).encode('utf-8'))
+        
       elif command == 'consulta':
         arguments = processedMessage[1:]
         if len(arguments) != 1: raise Exception('Insufficient number of arguments')
         name = arguments[0]
         endereco = self.dbConnection.read_by_name(name)
-        if endereco.endIP != None: self.request.sendall('resposta, {}, {}'.format(endereco.endIP.strip(), endereco.porta.strip()).encode('utf-8'))
+        if endereco.endIP != None: 
+          self.request.sendall('resposta, {}'.format(endereco.toJson()).encode('utf-8'))
         else: self.request.sendall('resposta, nao_cadastrado'.encode('utf-8'))
       
       elif command == 'remocao':
