@@ -4,9 +4,15 @@ class Address():
         self.endIP=endIP
         self.porta=porta
 
-    def tostring(self):
+    def toString(self):
         if self.nome and self.porta and self.endIP:
-            print(self.nome,self.endIP,self.porta)
+            return '{ ' + 'nome: {}, endIP: {}, porta: {}'.format(self.nome.strip(), self.endIP.strip(), self.porta.strip()) + ' }'
+        else:
+            print('Objeto vazio')
+
+    def toJson(self):
+        if self.nome and self.porta and self.endIP:
+            return dict(nome=self.nome.strip(), endIp=self.endIP.strip(), porta=self.porta.strip())
         else:
             print('Objeto vazio')
 
