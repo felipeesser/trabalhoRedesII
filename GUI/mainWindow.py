@@ -3,63 +3,122 @@ from PyQt5.QtGui import *
 from PyQt5.QtCore import *
 from callWindow import CallWindow
 
-
-ADRESSES=[['maria','11111111.11111111.11111111.11111111','3000'],
-['joao','11111111.11111111.11111111.01111111','3000'],
-['jose','11111111.11111111.11111111.11111110','3000']]
-
 class MainWindow(QMainWindow):
     def __init__(self):
         super(MainWindow,self).__init__()
         self.setWindowTitle("MainWindow")
         self.setGeometry(0, 0, 600, 400)
-        self.dlg=None
+        self.calldlg=None
         self.pagelayout=QVBoxLayout()
         
-        self.initContact()
+        warninglayout=QHBoxLayout()
+        self.reloadbtn=QPushButton(self)
+        self.reloadbtn.setIcon(QIcon("./images/reload.png"))
+        self.reloadbtn.clicked.connect(lambda:self.getAvailableAdresses(1))
+        self.reloadbtn.hide()
+        self.NAlbl=QLabel("Sem contatos disponíveis",self)
+        self.NAlbl.hide()
+        warninglayout.addWidget(self.NAlbl,alignment=Qt.AlignHCenter)
+        warninglayout.addWidget(self.reloadbtn,alignment=Qt.AlignHCenter)
+        self.pagelayout.addLayout(warninglayout)
+        
+        self.getAvailableAdresses(0)
+        self.simulateCall()
 
         self.widget=QWidget()
         self.widget.setLayout(self.pagelayout)
         self.setCentralWidget(self.widget)
         
-    def keyPressEvent(self, event):
-        if event.key() == Qt.Key_E:
-            self.showCallDialog()
+    def getAvailableAdresses(self,opt):
+        #receber contatos disponiveis do servidor de registro.
+        if opt==1:
+            addrs=[['maria','192.168.0.101','3000'],
+                ['joao','192.168.0.121','3000'],
+                ['jose','192.168.1.103','3000']]
+            self.addresses=addrs
+        else:
+            addrs=[]
+            self.addresses=addrs
+        self.initContact()
+        
+    def simulateCall(self):
+        #simulacao de ligacao udp
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.showCallDialog)
+        self.timer.start(10000)
             
     def showCallDialog(self):
-        self.dlg = QDialog(self)
-        self.dlg.setWindowTitle("Incoming Call")
+        nome="Maria"
+        self.calldlg = QDialog(self)
+        self.calldlg.setWindowTitle("Incoming Call")
+        pagelayout=QVBoxLayout()
+        
+        lbl=QLabel("Ligação recebida: "+nome,self)
+        pagelayout.addWidget(lbl)
+        
+        btnslayout=QHBoxLayout()
         acceptcall=QPushButton(self)
         acceptcall.setIcon(QIcon("./images/accept.png"))
+        acceptcall.clicked.connect(self.showCall)
         declinecall=QPushButton(self)
         declinecall.setIcon(QIcon("./images/decline.png"))
-        acceptcall.clicked.connect(self.showCall)
         declinecall.clicked.connect(self.declineCall)
-        hbox=QHBoxLayout()
-        hbox.addWidget(acceptcall)
-        hbox.addWidget(declinecall)
-        self.dlg.setLayout(hbox)
-        self.dlg.exec()
+        btnslayout.addWidget(acceptcall)
+        btnslayout.addWidget(declinecall)
+
+        pagelayout.addLayout(btnslayout)
+        self.calldlg.setLayout(pagelayout)
+        self.calldlg.exec()
+
+        self.timer.stop()#simulacao de ligacao udp
 
     def initContact(self):
-        for a in ADRESSES:
-            label=QLabel(a[0],self)
-            btn=QPushButton(self)
-            btn.setFixedSize(100,50)
-            btn.setIcon(QIcon("./images/accept.png"))
-            btn.clicked.connect(self.showCall)
-            contactlayout=QHBoxLayout()
-            contactlayout.addWidget(label,alignment=Qt.AlignHCenter)
-            contactlayout.addWidget(btn,alignment=Qt.AlignHCenter)
-            self.pagelayout.addLayout(contactlayout)
+
+        if self.addresses:
+            self.reloadbtn.hide()
+            self.NAlbl.hide()
+            for a in self.addresses:
+                contactlayout=QHBoxLayout()
+                label=QLabel(a[0],self)
+                contactlayout.addWidget(label,alignment=Qt.AlignHCenter)
+                btn=QPushButton(self)
+                btn.setFixedSize(100,50)
+                btn.setIcon(QIcon("./images/accept.png"))
+                btn.clicked.connect(self.showCall)  
+                contactlayout.addWidget(btn,alignment=Qt.AlignHCenter)
+                self.pagelayout.addLayout(contactlayout)
+        else:
+            self.reloadbtn.show()
+            self.NAlbl.show()
 
     def declineCall(self):
-        self.dlg.close()
-
+        self.calldlg.close()
+    
+    def tryContact(self,opt):
+        #tenta conexao udp
+        if opt:
+            return True
+        return False
+    
     def showCall(self):
-        self.call=CallWindow(self)
-        self.call.show()
-        if self.dlg:
-            self.dlg.close()
-        self.close()
+        teste=True      #sucesso conexao udp
+        #teste=False    #fracasso conexao udp
+        if self.tryContact(teste):
+            self.call=CallWindow(self)
+            self.call.show()
+            if self.calldlg:
+                self.calldlg.close()
+                self.calldlg=None
+            self.hide()
+        else:
+            self.showFailDialog()
 
+    def showFailDialog(self):
+        nome="Maria"
+        self.calldlg = QDialog(self)
+        self.calldlg.setWindowTitle("Incoming Call")
+        lbl=QLabel("Ligação recusada: "+nome,self)
+        pagelayout=QVBoxLayout()
+        pagelayout.addWidget(lbl)
+        self.calldlg.setLayout(pagelayout)
+        self.calldlg.exec()

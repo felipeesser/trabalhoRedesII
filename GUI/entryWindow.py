@@ -22,6 +22,7 @@ class EntryWindow(QMainWindow):
         self.setCentralWidget(self.widget)
     
     def setAvailable(self):
+        #estabelecer a conexão com o servidor de registro-> nome, IP e porta.
         pass
 
     def showMain(self):
