@@ -23,7 +23,7 @@ class MainWindow(QMainWindow):
         self.setCentralWidget(self.widget)
         
     def keyPressEvent(self, event):
-        if event.key() == Qt.Key_Space:
+        if event.key() == Qt.Key_E:
             self.showCallDialog()
             
     def showCallDialog(self):
