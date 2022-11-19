@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
         self.showCall(destip,destport)
 
     def showCall(self,destip,destport):
-        self.cw=CallWindow(self,self.hostip,self.hostport,destip,destport)
+        self.cw=CallWindow(self,self.hostip,self.hostport+1,destip,destport+1)
         self.cw.show()
         if self.calldlg:
             self.calldlg.close()

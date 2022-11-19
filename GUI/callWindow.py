@@ -5,7 +5,6 @@ from audioStream import *
 from PyQt5.QtNetwork import *
 
 
-
 class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create-circular-image-from-any-image/?tab=article
     def mask_image(self,imgdata, imgtype ='jpg', size = 64):
  
@@ -77,9 +76,11 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
         self.closecall.setIcon(QIcon("./images/decline.png"))
         self.closecall.clicked.connect(self.returnWindow)
         self.hbox.addWidget(self.closecall,alignment=Qt.AlignHCenter)
-
-
+        self.timer = QTimer()
+        self.timer.timeout.connect(self.writeDatagram)
+        self.timer.start(1)
         self.widget=QWidget()
+        self.pushToTalkToggle = False
         self.widget.setLayout(self.page)
         self.setCentralWidget(self.widget)
         
@@ -89,10 +90,9 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
 
     def keyPressEvent(self, e):
         if e.key() == Qt.Key_S:
-            self.writeDatagram()
+            self.pushToTalkToggle = not self.pushToTalkToggle
 
     def initSocket(self):
-        self.main.udpSocket.close()
         self.inStream = StreamManager.startStream(isInput=True)
         self.outStream = StreamManager.startStream(isInput=False)
         self.udpSocket = QUdpSocket(self)
@@ -100,8 +100,10 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
         self.udpSocket.readyRead.connect(self.readPendingDatagrams)
 
     def writeDatagram(self):
-        outgoingData = self.inStream.read(StreamManager.CHUNK)
-        self.udpSocket.writeDatagram(outgoingData,QHostAddress(self.destip),int(self.destport))
+        if self.pushToTalkToggle:
+            outgoingData = self.inStream.read(StreamManager.CHUNK)
+            self.udpSocket.writeDatagram(outgoingData,QHostAddress(self.destip),int(self.destport))
+        self.timer.start(1)
 
     def readPendingDatagrams(self):
         while self.udpSocket.hasPendingDatagrams():
