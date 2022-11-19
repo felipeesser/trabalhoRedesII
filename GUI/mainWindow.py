@@ -24,7 +24,7 @@ class MainWindow(QMainWindow):
         warninglayout.addWidget(self.reloadbtn,alignment=Qt.AlignHCenter)
         self.pagelayout.addLayout(warninglayout)
         
-        self.getAvailableAdresses(0)
+        self.getAvailableAdresses()
         # self.simulateCall()
 
         self.widget=QWidget()
@@ -52,7 +52,7 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.showCallDialog)
         self.timer.start(10000)
             
-    def showCallDialog(self, ):
+    def showCallDialog(self):
         nome="Maria"
         self.calldlg = QDialog(self)
         self.calldlg.setWindowTitle("Incoming Call")
