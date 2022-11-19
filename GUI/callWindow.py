@@ -1,8 +1,10 @@
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import * 
 from PyQt5.QtWidgets import *
+from audioStream import *
+from PyQt5.QtNetwork import *
 
-CALLER=['maria','192.168.0.101','3000']
+
 
 class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create-circular-image-from-any-image/?tab=article
     def mask_image(self,imgdata, imgtype ='jpg', size = 64):
@@ -45,12 +47,16 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
 
         return pm
 
-    def __init__(self,main):
+    def __init__(self,main,hostip,hostport,destip,destport):
         super(CallWindow,self).__init__()
         self.setWindowTitle("CallWindow")
         self.setGeometry(0, 0, 600, 400)
+        self.hostip,self.hostport=hostip,hostport
+        self.destip,self.destport=destip,destport
         self.main=main
 
+        self.initSocket()
+        
         self.hbox=QHBoxLayout()
         self.profile=QVBoxLayout()
         self.page=QVBoxLayout()
@@ -65,7 +71,7 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
         self.ilabel.setPixmap(pixmap)
         self.profile.addWidget(self.ilabel,alignment=Qt.AlignHCenter)
 
-        self.tlabel=QLabel(CALLER[0],self)
+        self.tlabel=QLabel(str(self.destport),self)
         self.hbox.addWidget(self.tlabel,alignment=Qt.AlignHCenter)
         self.closecall=QPushButton(self)
         self.closecall.setIcon(QIcon("./images/decline.png"))
@@ -80,3 +86,25 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
     def returnWindow(self):
         self.main.show()
         self.close()
+
+    def keyPressEvent(self, e):
+        if e.key() == Qt.Key_S:
+            self.writeDatagram()
+
+    def initSocket(self):
+        self.main.udpSocket.close()
+        self.inStream = StreamManager.startStream(isInput=True)
+        self.outStream = StreamManager.startStream(isInput=False)
+        self.udpSocket = QUdpSocket(self)
+        self.udpSocket.bind(QHostAddress(self.hostip), self.hostport)
+        self.udpSocket.readyRead.connect(self.readPendingDatagrams)
+
+    def writeDatagram(self):
+        outgoingData = self.inStream.read(StreamManager.CHUNK)
+        self.udpSocket.writeDatagram(outgoingData,QHostAddress(self.destip),int(self.destport))
+
+    def readPendingDatagrams(self):
+        while self.udpSocket.hasPendingDatagrams():
+            response,host,port= self.udpSocket.readDatagram(StreamManager.CHUNK*2)
+            if response:
+                self.outStream.write(response)

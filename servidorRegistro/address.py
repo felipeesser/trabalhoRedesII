@@ -1,3 +1,4 @@
+import json
 class Address():
     def __init__(self,nome,endIP,porta):
         self.nome=nome
@@ -12,7 +13,7 @@ class Address():
 
     def toJson(self):
         if self.nome and self.porta and self.endIP:
-            return dict(nome=self.nome.strip(), endIp=self.endIP.strip(), porta=self.porta.strip())
+            return json.dumps(dict(nome=self.nome.strip(), endIp=self.endIP.strip(), porta=self.porta.strip()))
         else:
             print('Objeto vazio')
 

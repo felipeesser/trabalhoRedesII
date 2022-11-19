@@ -5,7 +5,7 @@ from psycopg2 import DatabaseError
 
 class RegisterServer(BaseRequestHandler):
   
-  dbConnection = Connection('servidorRegistro/credentials.json')
+  dbConnection = Connection('../servidorRegistro/credentials.json')
 
   def __init__(self, request, client_address, server: BaseServer) -> None:
     super().__init__(request, client_address, server)
