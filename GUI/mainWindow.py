@@ -2,6 +2,8 @@ from PyQt5.QtWidgets import *
 from PyQt5.QtGui import * 
 from PyQt5.QtCore import *
 from callWindow import CallWindow
+from socket import *
+import ast
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -14,7 +16,7 @@ class MainWindow(QMainWindow):
         warninglayout=QHBoxLayout()
         self.reloadbtn=QPushButton(self)
         self.reloadbtn.setIcon(QIcon("./images/reload.png"))
-        self.reloadbtn.clicked.connect(lambda:self.getAvailableAdresses(1))
+        self.reloadbtn.clicked.connect(lambda:self.getAvailableAdresses())
         self.reloadbtn.hide()
         self.NAlbl=QLabel("Sem contatos disponíveis",self)
         self.NAlbl.hide()
@@ -23,22 +25,25 @@ class MainWindow(QMainWindow):
         self.pagelayout.addLayout(warninglayout)
         
         self.getAvailableAdresses(0)
-        self.simulateCall()
+        # self.simulateCall()
 
         self.widget=QWidget()
         self.widget.setLayout(self.pagelayout)
         self.setCentralWidget(self.widget)
         
-    def getAvailableAdresses(self,opt):
+    def getAvailableAdresses(self):
         #receber contatos disponiveis do servidor de registro.
-        if opt==1:
-            addrs=[['maria','192.168.0.101','3000'],
-                ['joao','192.168.0.121','3000'],
-                ['jose','192.168.1.103','3000']]
-            self.addresses=addrs
-        else:
-            addrs=[]
-            self.addresses=addrs
+        # if opt ==1 or opt ==0:
+        registerServerSocket = create_connection(('127.0.0.1', 9999))
+        registerServerSocket.send('listar_contatos'.encode('utf-8'))
+        serverResponse = registerServerSocket.recv(1024).decode('utf-8')
+        print('serverResponse: {}'.format(serverResponse))
+        contacts = ast.literal_eval(serverResponse.split('resposta, ')[1])
+        print('data: {}'.format(contacts))
+        self.addresses=contacts
+        # else:
+        #     addrs=[]
+        #     self.addresses=addrs
         self.initContact()
         
     def simulateCall(self):
@@ -47,7 +52,7 @@ class MainWindow(QMainWindow):
         self.timer.timeout.connect(self.showCallDialog)
         self.timer.start(10000)
             
-    def showCallDialog(self):
+    def showCallDialog(self, ):
         nome="Maria"
         self.calldlg = QDialog(self)
         self.calldlg.setWindowTitle("Incoming Call")
@@ -79,7 +84,7 @@ class MainWindow(QMainWindow):
             self.NAlbl.hide()
             for a in self.addresses:
                 contactlayout=QHBoxLayout()
-                label=QLabel(a[0],self)
+                label=QLabel(a['nome'],self)
                 contactlayout.addWidget(label,alignment=Qt.AlignHCenter)
                 btn=QPushButton(self)
                 btn.setFixedSize(100,50)

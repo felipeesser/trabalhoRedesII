@@ -1,10 +1,12 @@
 from PyQt5.QtCore import * 
 from PyQt5.QtGui import * 
 from PyQt5.QtWidgets import *
+from callManager import CallManager
 
 CALLER=['maria','192.168.0.101','3000']
 
 class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create-circular-image-from-any-image/?tab=article
+    
     def mask_image(self,imgdata, imgtype ='jpg', size = 64):
  
         image = QImage.fromData(imgdata, imgtype)
@@ -45,8 +47,10 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
 
         return pm
 
-    def __init__(self,main):
+    def __init__(self,main,port):
+        
         super(CallWindow,self).__init__()
+        self.callManager = CallManager(port)
         self.setWindowTitle("CallWindow")
         self.setGeometry(0, 0, 600, 400)
         self.main=main
