@@ -155,4 +155,3 @@ class MainWindow(QMainWindow):
         self.udpSocket.writeDatagram("recusado".encode('utf-8'),QHostAddress(host),int(port))
     def sendAccept(self,host,port):
         self.udpSocket.writeDatagram("aceito".encode('utf-8'),QHostAddress(host),int(port))
-   

@@ -85,6 +85,8 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
         self.setCentralWidget(self.widget)
         
     def returnWindow(self):
+        self.udpSocket.writeDatagram("encerrar_ligacao".encode('utf-8'),QHostAddress(self.destip),int(self.destport))
+        self.udpSocket.close()
         self.main.show()
         self.close()
 
@@ -109,4 +111,12 @@ class CallWindow(QMainWindow):#https://www.geeksforgeeks.org/pyqt5-how-to-create
         while self.udpSocket.hasPendingDatagrams():
             response,host,port= self.udpSocket.readDatagram(StreamManager.CHUNK*2)
             if response:
-                self.outStream.write(response)
+                try:
+                    stringResponse = response.decode('utf-8').strip()
+                    print(stringResponse)
+                    if stringResponse == 'encerrar_ligacao':
+                        self.udpSocket.close()
+                        self.main.show()
+                        self.close()
+                except:
+                    self.outStream.write(response)
