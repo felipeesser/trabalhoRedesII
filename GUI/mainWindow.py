@@ -21,16 +21,7 @@ class MainWindow(QMainWindow):
         self.calldlg=None
         self.pagelayout=QVBoxLayout()
         
-        warninglayout=QHBoxLayout()
-        self.reloadbtn=QPushButton(self)
-        self.reloadbtn.setIcon(QIcon("./images/reload.png"))
-        self.reloadbtn.clicked.connect(self.getAvailableAdresses)
-        self.reloadbtn.hide()
-        self.NAlbl=QLabel("Sem contatos disponíveis",self)
-        self.NAlbl.hide()
-        warninglayout.addWidget(self.NAlbl,alignment=Qt.AlignHCenter)
-        warninglayout.addWidget(self.reloadbtn,alignment=Qt.AlignHCenter)
-        self.pagelayout.addLayout(warninglayout)
+        
         self.initContacts()
 
         self.initSocket()
@@ -49,6 +40,16 @@ class MainWindow(QMainWindow):
     def closeEvent(self, event):
         command="remocao, %s"%(self.name)
         self.sendMessage((self.serverip, self.serverport), command.encode('utf-8'))
+
+    def reload(self):
+        
+        self.deleteContactBtns()
+        self.getAvailableAdresses()
+        
+    def deleteContactBtns(self):
+        for i in reversed(range(self.pagelayout.count())): 
+            for j in range(self.pagelayout.itemAt(i).count()):
+                self.pagelayout.itemAt(i).itemAt(j).widget().deleteLater()
 
     def getAvailableAdresses(self):
         data=self.sendMessage((self.serverip, self.serverport), 'listar_contatos'.encode('utf-8'))
@@ -86,9 +87,17 @@ class MainWindow(QMainWindow):
 
 
     def initContacts(self):
+        warninglayout=QHBoxLayout()
+        self.reloadbtn=QPushButton(self)
+        self.NAlbl=QLabel("Sem contatos disponíveis",self)
+        self.reloadbtn.setIcon(QIcon("./images/reload.png"))
+        self.reloadbtn.clicked.connect(self.reload)
+        
+        warninglayout.addWidget(self.NAlbl,alignment=Qt.AlignHCenter)
+        warninglayout.addWidget(self.reloadbtn,alignment=Qt.AlignHCenter)
+        self.pagelayout.addLayout(warninglayout)
 
         if self.contacts:
-            self.reloadbtn.hide()
             self.NAlbl.hide()
             for c in self.contacts:
                 contactlayout=QHBoxLayout()
@@ -100,9 +109,6 @@ class MainWindow(QMainWindow):
                 btn.clicked.connect(lambda:self.invite(c))  
                 contactlayout.addWidget(btn,alignment=Qt.AlignHCenter)
                 self.pagelayout.addLayout(contactlayout)
-        else:
-            self.reloadbtn.show()
-            self.NAlbl.show()
 
     def acceptCall(self,destip,destport):
         self.sendAccept(destip,destport)
